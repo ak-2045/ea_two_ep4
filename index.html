@@ -2,127 +2,414 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Chapter 3</title>
-
+<title>CHP3</title>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600&display=swap" rel="stylesheet">
-
+<link rel="icon" type="image/x-icon" href="https://images.vexels.com/media/users/3/211391/isolated/preview/2af92aec47b1fa4289a190c5fa7ad94c-magic-spell-book-icon.png">
 <style>
-    body {
-        margin: 0;
-        padding: 0;
-        background: radial-gradient(circle at top, #0a0a1a, #000);
-        color: white;
-        font-family: 'Cormorant Garamond', serif;
-    }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
 
-    .stars {
-        position: fixed;
-        width: 100%;
-        height: 100%;
-        background: transparent url('https://www.transparenttextures.com/patterns/stardust.png');
-        z-index: -1;
-        animation: moveStars 100s linear infinite;
-    }
+  body {
+    background: #000;
+    color: white;
+    font-family: 'Cormorant Garamond', serif;
+    overflow: hidden;
+  }
 
-    @keyframes moveStars {
-        from {background-position: 0 0;}
-        to {background-position: 10000px 5000px;}
-    }
+  #video-screen {
+    position: fixed;
+    inset: 0;
+    width: 100vw;
+    height: 100vh;
+    background: #000;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
 
-    .container {
-        max-width: 800px;
-        margin: auto;
-        padding: 80px 20px;
-    }
+  #intro-video {
+    width: 100vw;
+    height: 100vh;
+    object-fit: cover;
+    display: block;
+  }
 
-    .chapter {
-        font-size: 42px;
-        color: darkred;
-        margin-bottom: 20px;
-        font-weight: 600;
-        text-align: center;
-    }
+  #video-blocker {
+    position: absolute;
+    inset: 0;
+    z-index: 101;
+    cursor: not-allowed;
+  }
 
-    .story {
-        font-size: 20px;
-        line-height: 1.9;
-        text-align: justify;
-        white-space: pre-line;
-    }
+  #unmute-btn {
+    position: absolute;
+    bottom: 32px;
+    right: 32px;
+    z-index: 102;
+    background: rgba(139,0,0,0.7);
+    border: 1px solid rgba(255,215,0,0.4);
+    color: white;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 15px;
+    padding: 8px 20px;
+    border-radius: 999px;
+    cursor: pointer;
+    letter-spacing: 1px;
+    backdrop-filter: blur(6px);
+  }
+
+  #loading-screen {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: #000;
+    z-index: 90;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 24px;
+  }
+
+  #loading-screen.active { display: flex; }
+
+  .hp-crest {
+    font-size: 60px;
+    animation: floatCrest 2s ease-in-out infinite;
+  }
+
+  @keyframes floatCrest {
+    0%, 100% { transform: translateY(0); opacity: 0.8; }
+    50% { transform: translateY(-10px); opacity: 1; }
+  }
+
+  .loading-bar-wrap {
+    width: 260px;
+    height: 3px;
+    background: rgba(255,255,255,0.15);
+    border-radius: 999px;
+    overflow: hidden;
+  }
+
+  .loading-bar-fill {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, #8B0000, #FFD700);
+    border-radius: 999px;
+    animation: loadFill 1.8s ease-out forwards;
+  }
+
+  @keyframes loadFill {
+    0% { width: 0%; }
+    100% { width: 100%; }
+  }
+
+  .loading-text {
+    font-size: 18px;
+    color: rgba(255,255,255,0.5);
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    animation: pulse 1.5s ease-in-out infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 0.4; }
+    50% { opacity: 1; }
+  }
+
+  #story-screen {
+    display: none;
+    position: relative;
+    min-height: 100vh;
+    overflow-y: auto;
+  }
+
+  #story-screen.active {
+    display: block;
+    overflow-y: auto;
+  }
+
+  body.story-mode { overflow: auto; }
+
+  .stars {
+    position: fixed;
+    width: 100%;
+    height: 100%;
+    background: transparent url('https://www.transparenttextures.com/patterns/stardust.png');
+    z-index: 0;
+    animation: moveStars 100s linear infinite;
+    pointer-events: none;
+  }
+
+  @keyframes moveStars {
+    from { background-position: 0 0; }
+    to { background-position: 10000px 5000px; }
+  }
+
+  .story-bg {
+    position: fixed;
+    inset: 0;
+    background: radial-gradient(circle at top, #0a0a1a, #000);
+    z-index: -1;
+  }
+
+  .container {
+    max-width: 800px;
+    margin: auto;
+    padding: 80px 20px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .chapter {
+    font-size: 42px;
+    color: darkred;
+    margin-bottom: 20px;
+    font-weight: 600;
+    text-align: center;
+    opacity: 0;
+    animation: fadeInDown 1.2s ease forwards 0.3s;
+  }
+
+  .story {
+    font-size: 20px;
+    line-height: 1.9;
+    text-align: justify;
+    white-space: pre-line;
+    opacity: 0;
+    animation: fadeInUp 1.4s ease forwards 0.7s;
+  }
+
+  @keyframes fadeInDown {
+    from { opacity: 0; transform: translateY(-20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  #audio-btn {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    z-index: 200;
+    background: rgba(139,0,0,0.6);
+    border: 1px solid rgba(255,215,0,0.4);
+    color: white;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 15px;
+    padding: 8px 20px;
+    border-radius: 999px;
+    cursor: pointer;
+    backdrop-filter: blur(6px);
+    transition: background 0.3s;
+    display: none;
+    letter-spacing: 1px;
+  }
+
+  #audio-btn:hover { background: rgba(139,0,0,0.9); }
 </style>
 </head>
-
 <body>
 
-<div class="stars"></div>
-
-<div class="container">
-    <div class="chapter">Chapter 3</div>
-
-    <div class="story">
-
-The sun rose earlier than anyone had expected—pale at first, then spilling into a strange, diluted brightness that made the morning feel both awake and half-asleep. It was not the sharp gold of a normal day, but a softened glow, as though the world itself had not fully decided to return.
-
-Akmal stirred beneath it, dragging himself out of bed with the heaviness of a night that had offered little rest. His eyes burned faintly, his movements slow, like someone still tethered to uneasy dreams.
-
-Harshita, in contrast, stood already awake—alert, composed, and quietly resolute.
-
-She could do this.Not because she had slept well—far from it. She hadn’t slept a wink.
-
-And yet, the certainty remained.
-
-The thought had settled firmly in her chest overnight. Whatever this place was, however impossible it seemed, she would find a way out. And when she did, she promised herself something almost stubbornly normal: she would go back, meet her boyfriend, and spend the rest of the day pretending none of this had ever happened.
-
-Because none of it made sense.
-
-One moment, she had simply clicked a link Akmal had sent.
-
-And then—everything.
-
-Fragments returned unwillingly. Akmal’s voice, sharp with panic: *“Fuck—I messed up. I connected my dream world to the neural link…”*
-Then the sensation of being pulled—no, dragged—into something that didn’t feel like space or time at all.
-
-She pushed the memory away. It left behind a faint wave of nausea, the kind that lingered unpleasantly at the back of her throat.
-
-Even the food here had betrayed her. Hogwarts—or whatever version of it this was—had clearly not been designed with vegetarians in mind. She had gone to bed hungry, irritated, and determined.
-
-Now, she dressed quickly in her robes, fingers moving with purpose. The night had not been wasted. She had spent hours thinking—planning.
-
-Harry would need help with the tasks.
-Maybe more than help.
-
-Maybe intervention.
-
-And beyond all of that, there was the real objective—the only one that truly mattered.
-
-The password.
-
-Somewhere in this world, hidden beneath its spells and stories, was the key to leaving it.
-
-And she intended to find it.
-
-—
-
-Outside, the air carried a cool stillness as the participants gathered near a large tent. The fabric rippled gently, whispering in the faint morning breeze.
-
-Nearby, Hermione Granger and Neville Longbottom stood together, deep in discussion—voices low, urgent, as though rehearsing strategies one final time.
-
-Akmal joined Harshita, rubbing the back of his neck, his expression already defeated.
-
-“This body won’t allow me to do wonders,” he muttered. “You’re going to have to carry us. I don’t even remember any spells from the books.” He paused, exhaling. “Plus… I’m not really the wand type. More like… punch first, think later.”
-
-Harshita glanced at him, and for a moment—just a moment—her lips curved into something almost amused.
-
-Then she straightened, her confidence settling back into place like armor.
-
-“Don’t worry,” she said, her voice calm, steady—certain.
-
-“I’m all set.”
-
-Introduce first task. Then dragon game
-
-    </div>
+<div id="start-screen" style="position:fixed;inset:0;background:#000;z-index:200;display:flex;align-items:center;justify-content:center;">
+  <button id="start-btn" onclick="startExperience()" style="background:rgba(139,0,0,0.7);border:1px solid rgba(255,215,0,0.4);color:white;font-family:'Cormorant Garamond',serif;font-size:22px;padding:14px 40px;border-radius:999px;cursor:pointer;letter-spacing:2px;backdrop-filter:blur(6px);">continue...</button>
 </div>
 
+<div id="video-screen" style="display:none;">
+  <video id="intro-video" src="assets_four/intro.mp4" playsinline></video>
+  <div id="video-blocker" oncontextmenu="return false;"></div>
+</div>
+
+<div id="loading-screen">
+  <div class="hp-crest">&#9889;</div>
+  <div class="loading-bar-wrap">
+    <div class="loading-bar-fill"></div>
+  </div>
+  <div class="loading-text">Entering the Wizarding World</div>
+</div>
+
+<div id="story-screen">
+  <div class="story-bg"></div>
+  <div class="stars"></div>
+  <div class="container">
+    <div class="chapter">Chapter 3</div>
+    <div class="story">
+The sun rose earlier than anyone expected. At first it was pale, then slowly it spread across the castle in a strange washed-out glow that made the morning feel awake and sleepy at the same time. It wasn't the sharp golden light of a normal day.
+
+Akmal dragged himself out of bed with the energy of someone who had fought with sleep all night and still lost. His eyes stung faintly and every movement felt delayed, like half of him was still trapped in a bad dream.
+
+Harshita, in contrast, stood already awake.
+
+She was already dressed, and somehow holding herself together through sheer stubbornness. Not because she had slept well. She hadn't slept at all.
+
+Sometime during the night a thought had settled deep inside her chest. She could survive this.
+
+No matter how impossible this place felt she would find a way out. And when she did she promised herself something painfully normal. She would go home, meet her boyfriend, and spend the rest of the day pretending none of this had ever happened.
+
+Because seriously, what even was this?
+
+One second she had clicked a random link Akmal sent her.
+
+The next second reality folded in on itself like wet paper.
+
+Fragments of the memory kept flashing back at the worst possible moments. Akmal's voice full of panic and regret.
+
+"Fuck. I messed up. I connected my dream world to the neural link..."
+
+Then came the worst part.
+
+That horrible feeling of being dragged somewhere that didn't belong to space or time or anything remotely human. Like her entire body had been yanked through a crack in reality that was never supposed to open.
+
+She forced the memory down before it could fully surface. Every time she thought about it too long the same nausea returned, curling unpleasantly at the back of her throat.
+
+Even the food here had betrayed her. Hogwarts, or whatever cursed discount version of Hogwarts this was, clearly had personal beef with vegetarians. She had gone to bed hungry, irritated, and somehow even more determined. Now she pulled on her robes quickly, her movements sharp and purposeful.
+
+The night hadn't been wasted. While everyone else slept, Harshita had spent hours planning.
+
+Harry would need help during the tasks. Maybe more than help. Maybe someone needed to step in before things went horribly wrong.
+
+But above all of that there was the real mission. The password.
+
+Akmal had mentioned it before in one of his panicked rambles. Somewhere in this world there had to be some kind of password or key that could get them out of here.
+
+Harshita tightened the sleeves of her robes and narrowed her eyes slightly. I'll keep my eyes open, she told herself. There has to be something.
+
+Outside, the morning air carried a cold stillness as participants gathered near a massive tent. The fabric shifted softly in the breeze with faint whispering sounds that made the whole place feel strangely alive.
+
+A little ahead, Hermione Granger and Neville Longbottom stood together speaking in low urgent voices like commanders preparing for war.
+
+Akmal walked up beside Harshita and rubbed the back of his neck with a tired sigh.
+
+"This body won't let me do anything cool," he muttered. "You're gonna have to carry us. I don't even remember half the spells from the books." He paused before adding, "Also... I don't really look like a wand guy. I'm more of a punch first, think later person."
+
+Harshita almost laughed.
+
+Almost.
+
+Instead she placed a hand on his shoulder.
+
+CLANK.
+
+A camera flash exploded beside them.
+
+"Oh my my my! Hermione Granger and LONGBOTTOM? What a shocking turn of events!" came the sharp screeching voice of Rita Skeeter. "Honestly dear, I always shipped you with Harry."
+
+Before she could slither any closer, Akmal casually shifted his foot forward.
+
+Rita immediately tripped.
+
+Hard.
+
+Her face hit the ground with a deeply satisfying thud. For one beautifully rare second both Akmal and Harshita had the exact same thought.
+
+"Deserved."
+
+Neither of them said it out loud though. Mostly because she was still lying there groaning dramatically on the floor.
+
+Harshita grabbed Akmal’s arm and pulled him behind a jagged rock near the edge of the arena. 
+
+“Relax,” she said softly, steady as ever. “I’ve got this.”
+
+Akmal looked at her for a second. Somehow, even with thousands of people screaming around them and a fully grown dragon tearing up the arena, she still sounded completely certain.
+
+He nodded once.
+
+“I know.”
+
+Harshita carefully peeked around the rock. “While Harry keeps the dragon distracted, I’ll go for the golden egg,” she whispered. “That thing definitely has answers.”
+
+- - -
+
+The arena had gone absolutely mad.
+
+Students were yelling themselves hoarse from the stands. House banners whipped wildly through the air. Sparks and colored flames burst from wands like miniature fireworks while chants for the champions echoed through the stadium.
+
+Far above the arena, Harry zigzagged through the air on his broomstick while the Hungarian Horntail snapped viciously at him. Somewhere below the chaos, Hermione and Neville stood near the lower stands, watching with tight nervous faces as if they were both seconds away from fainting.
+
+And for one beautiful, impossible moment, everything actually seemed to be going according to plan.
+
+Then the dragon lost its mind.
+
+With a roar so loud the stone beneath their feet trembled, the Horntail ripped free from its chains. Iron shattered across the arena floor as the beast launched itself into the air after Harry, wings beating like thunder.
+
+The crowd erupted into screams. Some terrified. Some thrilled.
+
+Harshita’s eyes widened.
+
+Akmal turned toward her instantly.
+
+“Now,” he said, grabbing her wrist. “This is our chance. Come on.”
+
+<a href="https://ak-2045.github.io/eb_one_ep1/" style="color: #FFD700;">Face the dragon</a>
+
+    </div>
+  </div>
+</div>
+
+<audio id="bg-music" src="assets_four/hp_theme.mp3" loop></audio>
+<button id="audio-btn" onclick="toggleAudio()">Music: On</button>
+
+<script>
+  const video = document.getElementById('intro-video');
+  const videoScreen = document.getElementById('video-screen');
+  const loadingScreen = document.getElementById('loading-screen');
+  const storyScreen = document.getElementById('story-screen');
+  const bgMusic = document.getElementById('bg-music');
+  const audioBtn = document.getElementById('audio-btn');
+  let musicPlaying = false;
+
+  video.addEventListener('ended', showLoading);
+  video.addEventListener('error', () => setTimeout(showLoading, 500));
+
+  if (!video.getAttribute('src')) setTimeout(showLoading, 500);
+
+  function startExperience() {
+    document.getElementById('start-screen').style.display = 'none';
+    videoScreen.style.display = 'flex';
+    video.muted = false;
+    video.play().catch(() => { video.muted = true; video.play(); });
+  }
+
+  function showLoading() {
+    videoScreen.style.display = 'none';
+    loadingScreen.classList.add('active');
+    setTimeout(showStory, 2200);
+  }
+
+  function showStory() {
+    loadingScreen.classList.remove('active');
+    storyScreen.classList.add('active');
+    document.body.classList.add('story-mode');
+    audioBtn.style.display = 'block';
+    bgMusic.volume = 0.35;
+    bgMusic.play().then(() => {
+      musicPlaying = true;
+      audioBtn.textContent = 'Music: On';
+    }).catch(() => {
+      musicPlaying = false;
+      audioBtn.textContent = 'Music: Off';
+    });
+  }
+
+  function toggleAudio() {
+    if (musicPlaying) {
+      bgMusic.pause();
+      musicPlaying = false;
+      audioBtn.textContent = 'Music: Off';
+    } else {
+      bgMusic.play();
+      musicPlaying = true;
+      audioBtn.textContent = 'Music: On';
+    }
+  }
+
+  document.addEventListener('keydown', e => {
+    if (['ArrowLeft', 'ArrowRight', ' '].includes(e.key) && !storyScreen.classList.contains('active')) {
+      e.preventDefault();
+    }
+  });
+</script>
 </body>
 </html>
